@@ -3,11 +3,16 @@ use std::{path::Path, sync::Arc};
 use axum::{
     Router,
     extract::State,
-    http::{HeaderValue, StatusCode, header},
-    response::{Html, IntoResponse, Response},
-    routing::get,
+    http::{HeaderValue, header},
+    middleware,
+    response::Html,
+    routing::{get, post},
 };
+use serde::Serialize;
 use sqlx::{Sqlite, SqlitePool, migrate::MigrateDatabase};
+
+pub mod error;
+mod users;
 
 const DB_PATH: &str = "./db/db.sqlite";
 
@@ -17,25 +22,9 @@ struct AppState {
     jinja: Arc<minijinja::Environment<'static>>,
 }
 
-#[derive(Debug)]
-struct AppError(anyhow::Error);
-impl<E> From<E> for AppError
-where
-    E: Into<anyhow::Error>,
-{
-    fn from(err: E) -> Self {
-        Self(err.into())
-    }
-}
-
-impl IntoResponse for AppError {
-    fn into_response(self) -> Response {
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Something went wrong: {}", self.0),
-        )
-            .into_response()
-    }
+#[derive(Serialize)]
+struct Home {
+    is_admin: bool,
 }
 
 #[tokio::main]
@@ -54,12 +43,21 @@ async fn main() {
     minijinja_embed::load_templates!(&mut jinja);
 
     let state = AppState {
-        db,
+        db: db.clone(),
         jinja: Arc::new(jinja),
     };
 
+    tokio::spawn(async move {
+        users::run_session_gc_scheduler(db).await;
+    });
+
     // build our application with a route
-    let app = router().with_state(state);
+    let app = router()
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            users::auth_middleware,
+        ))
+        .with_state(state);
 
     // run our app with hyper, listening globally on port 3000
     let addr = "0.0.0.0:4040";
@@ -69,9 +67,20 @@ async fn main() {
 }
 
 fn router() -> Router<AppState> {
+    let admin_routes = Router::new()
+        .route("/users", get(users::index).post(users::create_post))
+        .route(
+            "/users/{id}/delete",
+            get(users::delete_get).post(users::delete_post),
+        )
+        .route_layer(middleware::from_extractor::<users::RequireAdmin>());
+
     Router::new()
         // `GET /` goes to `root`
         .route("/", get(root))
+        .route("/setup", get(users::setup_get).post(users::setup_post))
+        .route("/login", get(users::login_get).post(users::login_post))
+        .route("/logout", post(users::logout_post))
         .route(
             "/static/style.css",
             get((
@@ -92,13 +101,18 @@ fn router() -> Router<AppState> {
                 include_bytes!("../assets/static/script.js"),
             )),
         )
+        .merge(admin_routes)
 }
 
-async fn root(State(state): State<AppState>) -> Html<String> {
+async fn root(State(state): State<AppState>, current_user: users::CurrentUser) -> Html<String> {
     let template = state
         .jinja
         .get_template("home.html")
         .expect("template is loaded");
-    let rendered = template.render(()).unwrap();
+    let rendered = template
+        .render(&Home {
+            is_admin: current_user.is_admin,
+        })
+        .unwrap();
     Html(rendered)
 }
