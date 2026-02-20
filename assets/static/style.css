@@ -1,5 +1,7 @@
 :root {
     --bg: #f4f7fb;
+    --bg-accent-a: #eaf2ff;
+    --bg-accent-b: #e7f4ff;
     --card: #ffffff;
     --card-2: #f8fbff;
     --text: #172033;
@@ -7,10 +9,64 @@
     --line: #d7e0ee;
     --brand: #1f6feb;
     --brand-hover: #175fd0;
+    --brand-text: #ffffff;
     --danger: #b42318;
     --danger-hover: #911d13;
+    --focus-ring: rgba(31, 111, 235, 0.15);
+    --nav-bg: rgba(255, 255, 255, 0.92);
+    --input-bg: #ffffff;
+    --input-line: #c7d3e4;
+    --button-bg: #ffffff;
+    --button-line: #c8d5e6;
+    --button-hover-bg: #f4f8ff;
+    --button-active-bg: #eaf2ff;
+    --button-active-text: #124da8;
+    --danger-button-line: #f1c3bf;
+    --danger-button-bg: #fff5f4;
+    --danger-button-hover-bg: #ffe9e7;
+    --menu-bg: #ffffff;
+    --hover-bg: #eaf2ff;
     --shadow: 0 14px 40px rgba(15, 32, 64, 0.08);
+    --hover-shadow: 0 8px 24px rgba(31, 111, 235, 0.12);
+    --menu-shadow: 0 8px 24px rgba(15, 32, 64, 0.12);
     --radius: 14px;
+    color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #0d1422;
+        --bg-accent-a: #13233f;
+        --bg-accent-b: #102b3f;
+        --card: #111c2f;
+        --card-2: #15243b;
+        --text: #eaf1ff;
+        --muted: #a8b3c9;
+        --line: #2c3e5f;
+        --brand: #6ba2ff;
+        --brand-hover: #8bb8ff;
+        --brand-text: #081325;
+        --danger: #ff9d96;
+        --danger-hover: #ffc1bc;
+        --focus-ring: rgba(107, 162, 255, 0.25);
+        --nav-bg: rgba(17, 28, 47, 0.9);
+        --input-bg: #0f1a2d;
+        --input-line: #2f4368;
+        --button-bg: #16253d;
+        --button-line: #334a71;
+        --button-hover-bg: #1c3051;
+        --button-active-bg: #1d3f74;
+        --button-active-text: #d7e7ff;
+        --danger-button-line: #71433f;
+        --danger-button-bg: #3c2022;
+        --danger-button-hover-bg: #523032;
+        --menu-bg: #111f35;
+        --hover-bg: #1b335a;
+        --shadow: 0 14px 36px rgba(3, 10, 22, 0.42);
+        --hover-shadow: 0 10px 28px rgba(8, 18, 36, 0.55);
+        --menu-shadow: 0 10px 30px rgba(4, 12, 24, 0.6);
+        color-scheme: dark;
+    }
 }
 
 * {
@@ -26,8 +82,8 @@ body {
     min-height: 100vh;
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     color: var(--text);
-    background: radial-gradient(circle at 5% 0%, #eaf2ff 0, transparent 35%),
-        radial-gradient(circle at 95% 100%, #e7f4ff 0, transparent 30%), var(--bg);
+    background: radial-gradient(circle at 5% 0%, var(--bg-accent-a) 0, transparent 35%),
+        radial-gradient(circle at 95% 100%, var(--bg-accent-b) 0, transparent 30%), var(--bg);
 }
 
 a {
@@ -41,7 +97,7 @@ a:hover {
 
 .top-nav {
     border-bottom: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.92);
+    background: var(--nav-bg);
     backdrop-filter: blur(6px);
     position: sticky;
     top: 0;
@@ -189,7 +245,7 @@ a:hover {
 .plan-card:hover {
     text-decoration: none;
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(31, 111, 235, 0.12);
+    box-shadow: var(--hover-shadow);
 }
 
 .plan-name {
@@ -231,29 +287,29 @@ a:hover {
 
 input[type="text"] {
     width: 100%;
-    border: 1px solid #c7d3e4;
+    border: 1px solid var(--input-line);
     border-radius: 10px;
     padding: 0.55rem 0.65rem;
     font: inherit;
     color: var(--text);
-    background: #fff;
+    background: var(--input-bg);
 }
 
 input[type="password"] {
     width: 100%;
-    border: 1px solid #c7d3e4;
+    border: 1px solid var(--input-line);
     border-radius: 10px;
     padding: 0.55rem 0.65rem;
     font: inherit;
     color: var(--text);
-    background: #fff;
+    background: var(--input-bg);
 }
 
 input[type="text"]:focus,
 input[type="password"]:focus {
     outline: none;
     border-color: var(--brand);
-    box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.15);
+    box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .page.auth-page {
@@ -290,8 +346,8 @@ input[type="password"]:focus {
 .btn,
 input[type="submit"].btn {
     appearance: none;
-    border: 1px solid #c8d5e6;
-    background: #fff;
+    border: 1px solid var(--button-line);
+    background: var(--button-bg);
     color: var(--text);
     border-radius: 10px;
     padding: 0.5rem 0.85rem;
@@ -303,7 +359,7 @@ input[type="submit"].btn {
 
 .btn:hover,
 input[type="submit"].btn:hover {
-    background: #f4f8ff;
+    background: var(--button-hover-bg);
     text-decoration: none;
 }
 
@@ -311,7 +367,7 @@ input[type="submit"].btn:hover {
 input[type="submit"].btn-primary {
     border-color: var(--brand);
     background: var(--brand);
-    color: #fff;
+    color: var(--brand-text);
 }
 
 .btn-primary:hover,
@@ -321,18 +377,18 @@ input[type="submit"].btn-primary:hover {
 
 .btn.is-active {
     border-color: var(--brand);
-    background: #eaf2ff;
-    color: #124da8;
+    background: var(--button-active-bg);
+    color: var(--button-active-text);
 }
 
 .btn-danger {
-    border-color: #f1c3bf;
-    background: #fff5f4;
+    border-color: var(--danger-button-line);
+    background: var(--danger-button-bg);
     color: var(--danger);
 }
 
 .btn-danger:hover {
-    background: #ffe9e7;
+    background: var(--danger-button-hover-bg);
     color: var(--danger-hover);
 }
 
@@ -376,8 +432,8 @@ input[type="submit"].btn-primary:hover {
     list-style: none;
     border: 1px solid var(--line);
     border-radius: 10px;
-    background: #fff;
-    box-shadow: 0 8px 24px rgba(15, 32, 64, 0.12);
+    background: var(--menu-bg);
+    box-shadow: var(--menu-shadow);
     max-height: 220px;
     overflow-y: auto;
 }
@@ -393,7 +449,7 @@ input[type="submit"].btn-primary:hover {
 
 .action-search-option:hover,
 .action-search-option.is-selected {
-    background: #eaf2ff;
+    background: var(--hover-bg);
 }
 
 @media (max-width: 700px) {

@@ -20,7 +20,7 @@ use uuid::Uuid;
 
 use crate::{AppState, error::AppError};
 
-pub const SESSION_COOKIE_NAME: &str = "maintenance_planner_session_id";
+pub const SESSION_COOKIE_NAME: &str = "session_id";
 const SESSION_DURATION_SECONDS: i64 = 60 * 60 * 24 * 30;
 
 #[derive(Debug, Clone, serde::Serialize)]
