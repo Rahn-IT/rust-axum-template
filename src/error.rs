@@ -75,15 +75,18 @@ impl fmt::Display for AppError {
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
+        let status = self.status;
         let message = self.message;
 
-        if self.status == StatusCode::NOT_FOUND
-            || self.status == StatusCode::CONFLICT
-            || self.status == StatusCode::FORBIDDEN
-            || self.status == StatusCode::UNAUTHORIZED
+        eprintln!("{status} {message}");
+
+        if status == StatusCode::NOT_FOUND
+            || status == StatusCode::CONFLICT
+            || status == StatusCode::FORBIDDEN
+            || status == StatusCode::UNAUTHORIZED
         {
             let (title, button_label, button_href): (String, &str, &str) =
-                if self.status == StatusCode::NOT_FOUND {
+                if status == StatusCode::NOT_FOUND {
                     (
                         format!(
                             "{} Not Found",
@@ -92,9 +95,9 @@ impl IntoResponse for AppError {
                         "Back Home",
                         "/",
                     )
-                } else if self.status == StatusCode::FORBIDDEN {
+                } else if status == StatusCode::FORBIDDEN {
                     ("Forbidden".to_string(), "Back Home", "/")
-                } else if self.status == StatusCode::UNAUTHORIZED {
+                } else if status == StatusCode::UNAUTHORIZED {
                     ("Unauthorized".to_string(), "Login", "/login")
                 } else {
                     ("Cannot Save Changes".to_string(), "Back Home", "/")
@@ -114,7 +117,7 @@ impl IntoResponse for AppError {
 
             if let Ok(html) = rendered {
                 return (
-                    self.status,
+                    status,
                     [(
                         header::CONTENT_TYPE,
                         HeaderValue::from_static(mime::TEXT_HTML_UTF_8.as_ref()),
@@ -127,7 +130,7 @@ impl IntoResponse for AppError {
 
         (
             StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Something went wrong: {}", message),
+            "Something went wrong. Please check the log.",
         )
             .into_response()
     }
