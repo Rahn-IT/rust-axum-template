@@ -124,7 +124,6 @@ pub struct User {
     pub id: Uuid,
     pub name: String,
     pub is_admin: i64,
-    pub password_hash: String,
 }
 
 impl User {
@@ -209,8 +208,7 @@ pub async fn resolve_current_user_from_session(
         SELECT
             users.id as "id: uuid::Uuid",
             users.name,
-            users.is_admin,
-            users.password_hash
+            users.is_admin
         FROM user_sessions
         INNER JOIN users ON users.id = user_sessions.user_id
         WHERE user_sessions.id = $1
@@ -258,17 +256,13 @@ pub async fn login_post(
     }
 
     let login_name = form.name.trim().to_string();
-    let user = sqlx::query_as!(
-        User,
+    let user = sqlx::query!(
         r#"
         SELECT
             id as "id: uuid::Uuid",
-            name,
-            is_admin,
             password_hash
         FROM users
         WHERE LOWER(name) = LOWER($1)
-        LIMIT 1
         "#,
         login_name
     )
@@ -374,8 +368,7 @@ pub async fn index(
         SELECT
             id as "id: uuid::Uuid",
             name,
-            is_admin,
-            password_hash
+            is_admin
         FROM users
         ORDER BY name ASC
         "#
@@ -478,8 +471,7 @@ pub async fn delete_post(
         SELECT
             id as "id: uuid::Uuid",
             name,
-            is_admin,
-            password_hash
+            is_admin
         FROM users
         WHERE id = $1
         LIMIT 1
@@ -539,8 +531,7 @@ pub async fn delete_get(
         SELECT
             id as "id: uuid::Uuid",
             name,
-            is_admin,
-            password_hash
+            is_admin
         FROM users
         WHERE id = $1
         LIMIT 1
