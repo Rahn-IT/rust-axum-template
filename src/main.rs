@@ -14,6 +14,7 @@ use url::Url;
 
 mod csrf;
 pub mod error;
+mod security_headers;
 mod users;
 
 const DB_PATH: &str = "./db/db.sqlite";
@@ -72,6 +73,10 @@ async fn main() {
 
     // build our application with a route
     let app = router()
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            security_headers::middleware,
+        ))
         .layer(middleware::from_fn_with_state(
             state.clone(),
             csrf::middleware,
