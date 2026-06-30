@@ -1,4 +1,4 @@
-use std::{path::Path, sync::Arc};
+use std::{env, path::Path, sync::Arc};
 
 use axum::{
     Router,
@@ -10,7 +10,9 @@ use axum::{
 };
 use serde::Serialize;
 use sqlx::{Sqlite, SqlitePool, migrate::MigrateDatabase};
+use url::Url;
 
+mod csrf;
 pub mod error;
 mod users;
 
@@ -20,6 +22,8 @@ const DB_PATH: &str = "./db/db.sqlite";
 struct AppState {
     db: SqlitePool,
     jinja: Arc<minijinja::Environment<'static>>,
+    public_origin: String,
+    secure_cookies: bool,
 }
 
 #[derive(Serialize)]
@@ -29,6 +33,8 @@ struct Home {
 
 #[tokio::main]
 async fn main() {
+    dotenvy::dotenv().ok();
+
     if !tokio::fs::try_exists(DB_PATH).await.unwrap() {
         tokio::fs::create_dir_all(Path::new(DB_PATH).parent().unwrap())
             .await
@@ -42,9 +48,22 @@ async fn main() {
     let mut jinja = minijinja::Environment::new();
     minijinja_embed::load_templates!(&mut jinja);
 
+    let public_address = env::var("PUBLIC_ADDRESS")
+        .expect("PUBLIC_ADDRESS must be set, for example http://localhost:4040");
+    let public_url =
+        Url::parse(&public_address).expect("PUBLIC_ADDRESS must be a valid absolute URL");
+    let public_origin = public_url.origin().ascii_serialization();
+    let secure_cookies = match public_url.scheme() {
+        "https" => true,
+        "http" => false,
+        scheme => panic!("PUBLIC_ADDRESS must use http or https, got {scheme}"),
+    };
+
     let state = AppState {
         db: db.clone(),
         jinja: Arc::new(jinja),
+        public_origin,
+        secure_cookies,
     };
 
     tokio::spawn(async move {
@@ -53,6 +72,10 @@ async fn main() {
 
     // build our application with a route
     let app = router()
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            csrf::middleware,
+        ))
         .layer(middleware::from_fn_with_state(
             state.clone(),
             users::auth_middleware,

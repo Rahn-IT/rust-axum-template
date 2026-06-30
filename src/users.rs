@@ -298,6 +298,7 @@ pub async fn login_post(
         .path("/")
         .http_only(true)
         .same_site(SameSite::Lax)
+        .secure(state.secure_cookies)
         .build();
 
     Ok((jar.add(cookie), Redirect::to("/")).into_response())
