@@ -24,6 +24,7 @@ struct AppState {
     db: SqlitePool,
     jinja: Arc<minijinja::Environment<'static>>,
     public_origin: String,
+    public_display: String,
     secure_cookies: bool,
 }
 
@@ -54,6 +55,7 @@ async fn main() {
     let public_url =
         Url::parse(&public_address).expect("PUBLIC_ADDRESS must be a valid absolute URL");
     let public_origin = public_url.origin().ascii_serialization();
+    let public_display = public_url.to_string();
     let secure_cookies = match public_url.scheme() {
         "https" => true,
         "http" => false,
@@ -64,6 +66,7 @@ async fn main() {
         db: db.clone(),
         jinja: Arc::new(jinja),
         public_origin,
+        public_display,
         secure_cookies,
     };
 
@@ -90,7 +93,7 @@ async fn main() {
     // run our app with hyper, listening globally on port 3000
     let addr = "0.0.0.0:4040";
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    println!("Starting webserver on: http://{}", addr);
+    println!("Starting webserver on: {}", public_display);
     axum::serve(listener, app).await.unwrap();
 }
 
